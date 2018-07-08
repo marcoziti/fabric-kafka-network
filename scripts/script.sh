@@ -23,7 +23,7 @@ echo "Channel name : "$CHANNEL_NAME
 verifyResult () {
 	if [ $1 -ne 0 ] ; then
 		echo "!!!!!!!!!!!!!!! "$2" !!!!!!!!!!!!!!!!"
-                echo "================== ERROR !!! FAILED to execute End-2-End Scenario =================="
+                echo ">>>>>>>>>>>>>>>>>>> ERROR !!! FAILED to execute End-2-End Scenario <<<<<<<<<<<<<"
 		echo
    		exit 1
 	fi
@@ -98,10 +98,10 @@ createChannel() {
 }
 
 updateAnchorPeers() {
-        PEER=$1
-        setGlobals $PEER
+	PEER=$1
+	setGlobals $PEER
 
-        if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
+	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx >&log.txt
 	else
 		peer channel update -o orderer.example.com:7050 -c $CHANNEL_NAME -f ./channel-artifacts/${CORE_PEER_LOCALMSPID}anchors.tx --tls --cafile $ORDERER_CA >&log.txt
@@ -157,9 +157,9 @@ instantiateChaincode () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","111","b","222"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
 	else
-		peer chaincode instantiate -o orderer.example.com:7050 --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","100","b","200"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","111","b","222"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
 	fi
 	res=$?
 	cat log.txt
@@ -179,14 +179,14 @@ chaincodeQuery () {
   # we either get a successful response, or reach TIMEOUT
   while test "$(($(date +%s)-starttime))" -lt "$TIMEOUT" -a $rc -ne 0
   do
-     sleep 3
-     echo "Attempting to Query PEER$PEER ...$(($(date +%s)-starttime)) secs"
-     peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
-     test $? -eq 0 && VALUE=$(cat log.txt | awk '/Query Result/ {print $NF}')
-     test "$VALUE" = "$2" && let rc=0
+    sleep 3
+    echo "Attempting to Query PEER$PEER ...$(($(date +%s)-starttime)) secs"
+    peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt	 
+	test $? -eq 0 && VALUE=$(cat log.txt | egrep '^[0-9]+$') 
+    test "$VALUE" = "$2" && let rc=0
   done
-  echo
-  cat log.txt
+
+  echo 
   if test $rc -eq 0 ; then
 	echo "===================== Query on PEER$PEER on channel '$CHANNEL_NAME' is successful ===================== "
   else
@@ -214,8 +214,8 @@ chaincodeInvoke () {
 	echo
 }
 
-## Check for orderering service availablility
-echo "Check orderering service availability..."
+# ## Check for orderering service availablility
+# echo "Check orderering service availability..."
 checkOSNAvailability
 
 ## Create channel
@@ -235,28 +235,30 @@ updateAnchorPeers 2
 ## Install chaincode on Peer0/Org1 and Peer2/Org2
 echo "Installing chaincode on org1/peer0..."
 installChaincode 0
-echo "Install chaincode on org2/peer0..."
-installChaincode 2
 
 #Instantiate chaincode on Peer2/Org2
 echo "Instantiating chaincode on org2/peer2..."
-instantiateChaincode 2
+instantiateChaincode 0
 
-#Query on chaincode on Peer0/Org1
+#Query on chaincode on Peer0/Org1, 2nd parameter as the result to be verified against.
 echo "Querying chaincode on org1/peer0..."
-chaincodeQuery 0 100
+chaincodeQuery 0 111
+
+# echo "Install chaincode on org2/peer0..."
+# installChaincode 2
+
+# ## Install chaincode on Peer3/Org2
+# echo "Installing chaincode on org2/peer3..."
+# installChaincode 3
 
 #Invoke on chaincode on Peer0/Org1
 echo "Sending invoke transaction on org1/peer0..."
 chaincodeInvoke 0
 
-## Install chaincode on Peer3/Org2
-echo "Installing chaincode on org2/peer3..."
-installChaincode 3
 
 #Query on chaincode on Peer3/Org2, check if the result is 90
-echo "Querying chaincode on org2/peer3..."
-chaincodeQuery 3 90
+# echo "Querying chaincode on org2/peer3..."
+# chaincodeQuery 3 90
 
 echo
 echo "===================== All GOOD, End-2-End execution completed ===================== "

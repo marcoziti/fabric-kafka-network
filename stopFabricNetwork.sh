@@ -3,12 +3,12 @@
 # Copyright IBM Corp. All Rights Reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
-set -e
+# set -e
 
 export FABRIC_ROOT=$PWD
 export FABRIC_CFG_PATH=${FABRIC_ROOT}/config
-export FABRIC_CRYPTO_CONFIG_PATH=$FABRIC_ROOT/crypto-config
-export FABRIC_CHANNEL_ARTIFACTS_PATH=$FABRIC_ROOT/channel-artifacts
+export FABRIC_CRYPTO_CONFIG_PATH=${FABRIC_CFG_PATH}/crypto-config
+export FABRIC_CHANNEL_ARTIFACTS_PATH=${FABRIC_ROOT}/channel-artifacts
 
 DOCKER_NS=hyperledger
 ARCH=x86_64
@@ -16,14 +16,14 @@ VERSION=1.1.0
 BASE_DOCKER_TAG=x86_64-0.4.9
 
 function teardownFabricNetwork(){
-    echo "# Tear down Fabric Network"
-	CMD="docker-compose -f docker-compose-e2e.yaml down"
-	echo "# ${CMD}"
-	eval "${CMD}"
+    docker-compose -f ${FABRIC_ROOT}/docker-compose-e2e.yaml down
 
-    CMD="# docker container prune -f"
-    echo "# ${CMD}"
-    eval "${CMD}"
+    CONTAINER_IDS=$(docker ps -aq)
+    if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" = " " ]; then
+            echo "---- No containers available for deletion ----"
+    else
+            docker rm -f $CONTAINER_IDS
+    fi
 }
 
 function removeChannelArtifacts(){
@@ -51,9 +51,15 @@ function removePeerOrderCAs(){
 }
 
 function removeDockerComposeFile(){
-    CMD="rm docker-compose-e2e.yamlt"
-    echo "# Remove docker-compose file ${CMD}"
-    eval "${CMD}"
+    FILES_TO_DEL=(docker-compose-e2e.yamlt \
+        docker-compose-e2e.yaml)
+    
+    for file in ${FILES_TO_DEL[@]}; do
+        if [ -f $file ]; then  
+            echo "# Remove temparory file $file"
+            eval "rm $file"
+        fi
+    done
 }
 
 teardownFabricNetwork
