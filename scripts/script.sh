@@ -16,7 +16,7 @@ CHANNEL_NAME="$1"
 : ${TIMEOUT:="60"}
 COUNTER=1
 MAX_RETRY=5
-ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+# ORDERER_CA=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 
 echo "Channel name : "$CHANNEL_NAME
 
@@ -157,9 +157,9 @@ instantiateChaincode () {
 	# while 'peer chaincode' command can get the orderer endpoint from the peer (if join was successful),
 	# lets supply it directly as we know it using the "-o" option
 	if [ -z "$CORE_PEER_TLS_ENABLED" -o "$CORE_PEER_TLS_ENABLED" = "false" ]; then
-		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","111","b","222"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","111","b","222"]}' -P "AND	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
 	else
-		peer chaincode instantiate -o orderer.example.com:7050 --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","111","b","222"]}' -P "OR	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
+		peer chaincode instantiate -o orderer.example.com:7050 --tls --cafile $ORDERER_CA -C $CHANNEL_NAME -n mycc -v 1.0 -c '{"Args":["init","a","111","b","222"]}' -P "AND	('Org1MSP.peer','Org2MSP.peer')" >&log.txt
 	fi
 	res=$?
 	cat log.txt
@@ -181,12 +181,12 @@ chaincodeQuery () {
   do
     sleep 3
     echo "Attempting to Query PEER$PEER ...$(($(date +%s)-starttime)) secs"
-    peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt	 
-	test $? -eq 0 && VALUE=$(cat log.txt | egrep '^[0-9]+$') 
+    peer chaincode query -C $CHANNEL_NAME -n mycc -c '{"Args":["query","a"]}' >&log.txt
+	test $? -eq 0 && VALUE=$(cat log.txt | egrep '^[0-9]+$')
     test "$VALUE" = "$2" && let rc=0
   done
 
-  echo 
+  echo
   if test $rc -eq 0 ; then
 	echo "===================== Query on PEER$PEER on channel '$CHANNEL_NAME' is successful ===================== "
   else

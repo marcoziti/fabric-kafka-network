@@ -16,7 +16,10 @@ VERSION=1.1.0
 BASE_DOCKER_TAG=x86_64-0.4.9
 
 function teardownFabricNetwork(){
-    docker-compose -f ${FABRIC_ROOT}/docker-compose-e2e.yaml down
+    file=docker-compose-e2e.yaml
+    if [ -f $file ]; then
+    	docker-compose -f ${FABRIC_ROOT}/docker-compose-e2e.yaml down
+    fi
 
     CONTAINER_IDS=$(docker ps -aq)
     if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" = " " ]; then

@@ -7,10 +7,10 @@
 #
 # Designate folder structure
 # 1. Current folder -FABROCROOT
-# 2. config folder to store yaml files 
+# 2. config folder to store yaml files
 # 3. crypto-config folder to store generated ca and genesis
 # 4. template folder to store docker-compose template for fabric kafka network
-#  
+#
 set -e
 
 CHANNEL_NAME=$1
@@ -41,7 +41,7 @@ function checkIfDockerRunning(){
 	if [ "$status" == "7" ]; then
 		echo "# Docker is not running, please install and run it, and try again"
 		exit 1
-	fi 
+	fi
 	echo "# Dock is installed and running. Ready for next step."
 
 	#Prepare docker image name based on VERSION, ARCH
@@ -83,15 +83,15 @@ function prepareDockers(){
 	for image in ${FABRIC_IMAGES[@]}; do
 		if [ -z ${FABRIC_DOCKER_TAG+x} ]; then
 			FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/$image
-		else 
+		else
 			FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/$image:$FABRIC_DOCKER_TAG
-		fi 
+		fi
 		echo "#                                    #"
 		echo "# Pulling $FABRIC_DOCKER_IMAGE_NAME #"
 	    docker pull $FABRIC_DOCKER_IMAGE_NAME
 	done
 
-	FABRIC_BASE_IMAGES=( 
+	FABRIC_BASE_IMAGES=(
 		fabric-zookeeper \
 		fabric-kafka)
 	for image in ${FABRIC_BASE_IMAGES[@]}; do
@@ -104,7 +104,7 @@ function prepareDockers(){
 		echo "# Pulling $FABRIC_DOCKER_IMAGE_NAME #"
 		docker pull $FABRIC_DOCKER_IMAGE_NAME
 	done
-}			
+}
 
 ## Using docker-compose template replace private key file names with constants
 function replacePrivateKey () {
@@ -123,7 +123,7 @@ function replacePrivateKey () {
 	cd ${FABRIC_CRYPTO_CONFIG_PATH}/peerOrganizations/org1.example.com/ca/
 	PRIV_KEY=$(ls *_sk)
 	sed $OPTS "s/CA1_PRIVATE_KEY/${PRIV_KEY}/g" ${FABRIC_ROOT}/docker-compose-e2e.yaml
-		
+
 	cd ${FABRIC_CRYPTO_CONFIG_PATH}/peerOrganizations/org2.example.com/ca/
 	PRIV_KEY=$(ls *_sk)
 	sed $OPTS "s/CA2_PRIVATE_KEY/${PRIV_KEY}/g" ${FABRIC_ROOT}/docker-compose-e2e.yaml
@@ -137,12 +137,12 @@ function generateCerts (){
 	if find "$target" -mindepth 1 -print -quit 2>/dev/null | grep -q .; then
 		rm -dfr $target
 	fi
-	
+
 	if [ -z ${FABRIC_DOCKER_TAG+x} ]; then
 		FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/fabric-tools
-	else 
+	else
 		FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/fabric-tools:$FABRIC_DOCKER_TAG
-	fi 
+	fi
 
 	CRYPTOGEN_CMD="docker run --rm -v ${FABRIC_ROOT}:/fabric ${FABRIC_DOCKER_IMAGE_NAME} /usr/local/bin/cryptogen generate --config=/fabric/config/crypto-config.yaml --output=/fabric/config/crypto-config"
 	echo "# ${CRYPTOGEN_CMD}"
@@ -154,9 +154,9 @@ function generateCerts (){
 function generateChannelArtifacts() {
 	if [ -z ${FABRIC_DOCKER_TAG+x} ]; then
 		FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/fabric-tools
-	else 
+	else
 		FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/fabric-tools:$FABRIC_DOCKER_TAG
-	fi 
+	fi
 
 	echo
 	echo "#################################################################"
@@ -206,7 +206,7 @@ function launchDockerComposeNetwork(){
 }
 
 checkIfDockerRunning
-# prepareDockers
+prepareDockers
 generateCerts
 replacePrivateKey
 generateChannelArtifacts
