@@ -159,7 +159,7 @@ function generateChannelArtifacts() {
 	fi
 	
 	target=$FABRIC_ROOT/channel-artifacts
-	if [ -d $target ]; then	
+	if [ ! -d $target ]; then	
 		echo "# Create director ${target}."
 		mkdir -p ${target}
 	fi
