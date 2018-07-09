@@ -158,6 +158,8 @@ function generateChannelArtifacts() {
 		FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/fabric-tools:$FABRIC_DOCKER_TAG
 	fi
 
+	mkdir ./channel-artifacts
+	
 	echo
 	echo "#################################################################"
 	echo "### Generating channel configuration transaction 'channel.tx' ###"
