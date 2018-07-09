@@ -157,8 +157,12 @@ function generateChannelArtifacts() {
 	else
 		FABRIC_DOCKER_IMAGE_NAME=${DOCKER_NS}/fabric-tools:$FABRIC_DOCKER_TAG
 	fi
-
-	mkdir ./channel-artifacts
+	
+	target=$FABRIC_ROOT/channel-artifacts
+	if [ -d $target ]; then	
+		echo "# Create director ${target}."
+		mkdir -p ${target}
+	fi
 	
 	echo
 	echo "#################################################################"
