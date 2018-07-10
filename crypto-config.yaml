@@ -78,7 +78,7 @@ PeerOrgs:
     # Count: The number of user accounts _in addition_ to Admin
     # ---------------------------------------------------------------------------
     Users:
-      Count: 12
+      Count: 1
   # ---------------------------------------------------------------------------
   # Org2: See "Org1" for full specification
   # ---------------------------------------------------------------------------
@@ -92,4 +92,4 @@ PeerOrgs:
     Template:
       Count: 2
     Users:
-      Count: 3
+      Count: 1
